@@ -87,7 +87,60 @@
 		</p>
 
 		<p>
-		To read and write to the persistent disk, we divide it into smaller blocks.  Because we want to store both log transactions and a checkpoint, we partition the disk into two sections.  The blocks that begin each section are referred to as superblocks, to which we write header information about the log or checkpoint itself.
+		To read and write to the persistent disk, we divide it into smaller blocks.  Because we want to store both log transactions and a checkpoint, we partition the disk into two sections.  The blocks that begin each section are referred to as superblocks, to which we write header information about the log or checkpoint itself.  Our disk size is 10GB, and we divide it into blocks of size 4KB.  The last 2GB are reserved for the checkpoint.  To allocate memory from the disk, we use mmap.  
+		</p>
+
+		<p>
+		For the log, the information in the superblock takes the form: <br>
+		<i>
+		byte 0: u64 checksum <br>
+		byte 8: u32 current_generation <br>
+		byte 12: u32 start_of_log <br>
+		byte 16: u32 size_of_log <br>
+		</i>
+		</p>
+
+		<p>
+		Each 4KB block containing log entries will have the structure: <br>
+		<i>
+		byte 0: u64 checksum <br>
+		byte 8: u32 generation_number <br>
+		byte 12: u32 num_entries <br>
+		byte 16: first 20-byte entry <br>
+		byte 36: second 20-byte entry <br>
+		... <br>
+		</i>
+		</p>
+
+		<p>
+		Each log entry will take the form: <br>
+		<i>
+		byte 0: u32 opcode <br>
+		byte 4: u64 node_a_id <br>
+		byte 12: u64 node_b_id <br>
+		</i>
+		</p>
+
+		<p>
+		The opcodes are as follows: 0 for add_node, 1 for add_edge, 2 for remove_node, 3 for remove_edge.
+		</p>
+
+		<p>
+		The functions in log.cpp are able to read and write to the persistent disk and record log entries.  If the block is full, the functions in log.cpp also update the superblock and allocate a new block for the log.
+		</p>
+
+		<p>
+		Checkpointing functions are located in checkpoint.cpp.  The checkpoint superblock contains the following information: <br>
+		<i>
+		byte 0: u64 checksum <br>
+		byte 8: u32 generation <br>
+		byte 12: num_blocks <br>
+		byte 16: serial_size <br>
+		</i>
+		</p>
+
+		<p>
+		The log is serialized as a stream of unsigned 64-bit integers.  First, we send the total number of nodes in the graph.  Then, we send each node, followed by the number of neighbors it has, followed by the ids for each of its neighbors.
 		</p>
 
 		<p>
