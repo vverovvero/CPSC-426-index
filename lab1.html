@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<meta http-equiv="CONTENT-TYPE" content="text/html; charset=utf-8">
+		<title> Local in-memory graph </title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	<body>
+		<h1> Local in-memory graph </h1>
+		<p> Wendy Chen <br>
+			CPSC 426 Distributed Systems, Fall 2016
+		</p>
+	
+		<p>
+			<i> The following service description is adapted from the lab specification: 
+			</i>
+		</p>
+
+		<p>
+			<b> Service description </b>
+		</p>
+
+		<p>
+		The first iteration of the graph store is a simple single-node in-memory service.  A server hosts the graph and handles client requests to modify or query the graph.  The graph is erased from memory when the server stops.
+		</p>
+
+		<p>
+		The user should be able to invoke the graph server by specifying the port in the command line: <i> ./cs426_graph_server &ltport&gt </i>
+		</p>
+
+		<p>
+		The service expects simple HTTP requests with a Content-Length header, and arguments specified in JSON.  Requests should be in the form: <br> <br>
+			<i>
+			HTTP/1.1 &ltstatus_code&gt &ltstatus_message&gt <br>
+			Content-Length: &ltlength&gt <br>
+			Content-Type: application/json <br>
+			{ <br>
+			  &ltJSON_arguments&gt <br>
+			} <br>
+			</i>
+		</p>
+
+		<p>
+		All requests will be POST requests.  The following functions can be handled by the graph server:
+		</p>
+
+		<style type="text/css">
+		.tg  {border-collapse:collapse;border-spacing:0;}
+		.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+		.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+		.tg .tg-yw4l{vertical-align:top}
+		</style>
+		<table class="tg">
+		  <tr>
+		    <th class="tg-yw4l"><b>Function</b></th>
+		    <th class="tg-yw4l"><b>Arguments</b></th>
+		    <th class="tg-yw4l"><b>Return</b></th>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">add_node</td>
+		    <td class="tg-yw4l">u64 node_id</td>
+		    <td class="tg-yw4l">200 on success<br>204 if the node already exists</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">add_edge</td>
+		    <td class="tg-yw4l">u64 node_a_id, u64 node_b_id</td>
+		    <td class="tg-yw4l">200 on success<br>204 if the edge already exists<br>400 if either node doesn't exist, or if node_a_id is the same as node_b_id</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">remove_node</td>
+		    <td class="tg-yw4l">u64 node_id</td>
+		    <td class="tg-yw4l">200 on success<br>400 if the node does not exist</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">remove_edge</td>
+		    <td class="tg-yw4l">u64 node_a_id, u64 node_b_id</td>
+		    <td class="tg-yw4l">200 on success<br>400 if the edge does not exist</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">get_node</td>
+		    <td class="tg-yw4l">u64 node_id</td>
+		    <td class="tg-yw4l">200 and a boolean JSON field in_graph indicating whether the node is in the graph</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">get_edge</td>
+		    <td class="tg-yw4l">u64 node_a_id, u64 node_b_id</td>
+		    <td class="tg-yw4l">200 and a boolean JSON field in_graph indicating whether the edge is in the graph<br>400 of at least one of the vertices does not exist</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">get_neighbors</td>
+		    <td class="tg-yw4l">u64 node_id</td>
+		    <td class="tg-yw4l">200 and a list of neighbors or<br>400 if the node does not exist</td>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">shortest_path</td>
+		    <td class="tg-yw4l">u64 node_a_id, u64 node_b_id</td>
+		    <td class="tg-yw4l">u64 and a field distance containing the length of shortest path between the two nodes or<br>204 if there is no path <br>400 if either node does not exist</td>
+		  </tr>
+		</table>
+
+		<p>
+			<b> Compilation Details </b>
+		</p>
+
+		<p>
+		The current Makefile is for MacOSX.  The functions needed from Mongoose are included in mongoose.c, so no installation is required.
+		</p>
+
+		<p>
+			<b> Implementation Details </b>
+		</p>
+
+		<p>
+		The implementation is split into three areas: the graph, the server, and the http request handling.  These three areas are handled by the following files, respectively: graph.cpp, cs426_graph_server.cpp, and api.cpp. 
+		</p>
+
+		<p>
+		The Graph class is defined in graph.h.  As requested by the specification, all graph mutation and query functions are defined as class methods in graph.cpp.  When the graph service is running, an instance of the Graph class is constructed, and this instance is not preserved when the service terminates.
+		</p>
+
+		<p>
+		The server is set up in cs426_graph_server.cpp.  Mongoose is used for setting up the server, and parsing JSON attached to http requests.  When the server is running, it listens at the specified port for incoming events.  Each defined event corresponds to one of the functions from the lab specification.  When handling an event, the server calls a function from api.cpp.
+		</p>
+
+		<p>
+		The functions from api.cpp are wrappers for calling Graph methods in addition to emitting an http response.  Mongoose is used for emitting JSON.  
+		</p>
+
+		<p>
+			<b> Test script and Examples </b>
+		</p>
+
+		<p>
+		The test script I have provided (test.sh) builds a simple graph of six nodes and calls all the allowed functions.  Besides using the test script, http requests can also be sent using curl: <br>
+		<i>
+		curl -H "Content-Type: application/json" -X POST -d '{"node_id":1}' http://127.0.0.1:8000/api/v1/add_node
+		</i>
+		</p>
+
+
+		<p>
+			<b> Links: </b>
+		</p>
+		<p> 
+			<a href="index.html">Home:</a> Demo video and Abstract
+		</p>
+		<p> 
+			<a href="lab1.html">First iteration:</a> Local in-memory graph
+		</p>
+		<p> 
+			<a href="lab2.html">Second iteration:</a> Durable on-disk graph
+		</p>
+		<p> 
+			<a href="lab3.html">Third iteration:</a> Chain-replicated graph
+		</p>
+		<p> 
+			<a href="lab4.html">Fourth iteration:</a> Partitioned graph
+		</p>
+		<p> 
+			<a href="https://github.com/vverovvero/cs426_distributed_systems">Source code:</a> Each graph is stored under its appropriate branch (lab1, lab2, lab3, lab4)
+		</p>
+
+	</body>
+</html>
+

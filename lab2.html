@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<meta http-equiv="CONTENT-TYPE" content="text/html; charset=utf-8">
+		<title> Durable on-disk graph </title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	<body>
+		<h1> Durable on-disk graph </h1>
+		<p> Wendy Chen <br>
+			CPSC 426 Distributed Systems, Fall 2016
+		</p>
+
+		<p>
+			<i> The following service description is adapted from the lab specification: 
+			</i>
+		</p>
+
+		<p>
+			<b> Service description </b>
+		</p>
+		
+		<p>
+		To add durability, the graph service logs each transaction to a persisting disk.  While the graph is stored in main memory as it was in lab1, each mutating client request is now logged.  The client can also checkpoint the graph, which involves serializing the graph and dumping it to another partition of the persisting disk.  When the graph is checkpointed, the log can be erased as well.  Generation numbers are attached with the checkpoint and the log in order to distinguish which transactions are not contained within a checkpoint.  Due to the possiblity of a checkpoint, the server first tries to load the graph from checkpoint when it is started before reconstructing any transactions stored in the log.
+		</p>	
+
+		<p>
+		Starting from lab2, Google Cloud is used to host the graph service.  The graph service uses a VM running Linux with an extra persisting disk added.
+		</p>
+
+		<p>
+		The graph service has the same API described in lab1, with additional error codes.  Mutating client requests (add_node, add_edge, remove_node, remove_edge) return 507 if the log is full, indicating a necessary checkpoint.
+		</p>
+
+		<p>
+		The checkpoint command is as follows:
+		</p>
+
+		<style type="text/css">
+		.tg  {border-collapse:collapse;border-spacing:0;}
+		.tg td{font-family:Arial, sans-serif;font-size:14px;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+		.tg th{font-family:Arial, sans-serif;font-size:14px;font-weight:normal;padding:10px 5px;border-style:solid;border-width:1px;overflow:hidden;word-break:normal;}
+		.tg .tg-yw4l{vertical-align:top}
+		</style>
+		<table class="tg">
+		  <tr>
+		    <th class="tg-yw4l"><b>Function</b></th>
+		    <th class="tg-yw4l"><b>Arguments</b></th>
+		    <th class="tg-yw4l"><b>Return</b></th>
+		  </tr>
+		  <tr>
+		    <td class="tg-yw4l">checkpoint</td>
+		    <td class="tg-yw4l">n/a</td>
+		    <td class="tg-yw4l">200 on success<br>507 if there is insufficient space for the checkpoint</td>
+		  </tr>
+		</table>
+
+		<p>
+		To start the server, the user should run: <br>
+		<i> 
+		./cs426_graph_server &ltport&gt &ltdevfile&gt
+		</i>
+		</p>
+
+		<p>
+		The user may specify any port they desire, but the disk should be /dev/sdb.
+		</p>
+
+		<p>
+			<b> Compilation Details </b>
+		</p>
+
+		<p>
+		The current Makefile is for Linux, so that the graph service can be run on the VM's created on Google Cloud.  This lab continues to use Mongoose.
+		</p>
+
+		<p>
+			<b> Implementation Details </b>
+		</p>
+
+		<p>
+		Introducing durability involves logging and checkpointing over a disk.  These new functions can be found in log.cpp and checkpoint.cpp.  The mutating functions in api.cpp are updated to log a transaction before calling a graph method.
+		</p>
+
+		<p>
+		The three new main areas we deal with in this lab are: reading/writing to a disk, transactions in a log, and serializing the graph for checkpointing.
+		</p>
+
+		<p>
+		To read and write to the persistent disk, we divide it into smaller blocks.  Because we want to store both log transactions and a checkpoint, we partition the disk into two sections.  The blocks that begin each section are referred to as superblocks, to which we write header information about the log or checkpoint itself.
+		</p>
+
+		<p>
+			<b> Links: </b>
+		</p>
+		<p> 
+			<a href="index.html">Home:</a> Demo video and Abstract
+		</p>
+		<p> 
+			<a href="lab1.html">First iteration:</a> Local in-memory graph
+		</p>
+		<p> 
+			<a href="lab2.html">Second iteration:</a> Durable on-disk graph
+		</p>
+		<p> 
+			<a href="lab3.html">Third iteration:</a> Chain-replicated graph
+		</p>
+		<p> 
+			<a href="lab4.html">Fourth iteration:</a> Partitioned graph
+		</p>
+		<p> 
+			<a href="https://github.com/vverovvero/cs426_distributed_systems">Source code:</a> Each graph is stored under its appropriate branch (lab1, lab2, lab3, lab4)
+		</p>
+
+	</body>
+</html>
+
