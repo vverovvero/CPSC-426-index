@@ -1,0 +1,80 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+	<head>
+		<meta http-equiv="CONTENT-TYPE" content="text/html; charset=utf-8">
+		<title> Distributed Graph Store </title>
+		<link rel="stylesheet" type="text/css" href="style.css">
+	</head>
+	<body>
+		<h1> Distributed Graph Store </h1>
+		<p> Wendy Chen <br>
+			CPSC 426 Distributed Systems, Fall 2016
+		</p>
+
+		<iframe src="https://player.vimeo.com/video/198164646" width="640" height="360" frameborder="0" webkitallowfullscreen mozallowfullscreen allowfullscreen></iframe>
+	
+		<p>
+			<b> Abstract </b>
+		</p>
+		
+		<p>
+		In CPSC 426, I built a graph store service that handles various graph requests.  Four iterations of the graph service were built over the semester, starting with a simple service that was extended to add guarantees such as durability, failure-atomicity, and scalibilty.  Such features were only guaranteed independently of one another in each iteration.  The first graph service was a local, in-memory store for an undirected graph.  The graph was hosted on an http server, which clients could send http requests to.  In the second iteration, the graph was made durable by storing it on a persistent disk.  A log of transactions was also stored on the disk to provide failure atomicity.  In the third iteration, the local in-memory graph was replicated across a chain of nodes to provide scalibility for read requests.  Remote procedure calls were used for inter-node communication.  In the fourth iteration, the local in-memory graph was partitioned to improve scalibility as well.  A simple modulos function was used to determine which partitions to store each node on.
+		</p>	
+
+		<p>
+			<b> 1. Local in-memory graph </b>
+		</p>
+
+		<p>
+		The first iteration of the graph store is a simple single-node in-memory service.  A server hosts the graph and handles client requests to modify or query the graph.  The graph is erased from memory when the server stops.
+		</p>
+
+
+
+		<p>
+		...
+		Explain how to make and run the server.
+
+		Explain the interface of the service?  Mongoose used handling http requests and parsing the JSON.  
+		Show an example of sending a request.
+
+		Explain supported requests: add_node, add_edge, remove_node, etc
+		Maybe use a table here?  
+
+		Show an example request/response
+
+		Explain what included test script does
+		</p>
+
+		<p>
+			<b> 2. Durable on-disk graph </b>
+		</p>
+
+		<p>
+		...
+		</p>
+
+		<p>
+			<b> 3. Chain-replicated graph </b>
+		</p>
+
+		<p>
+		...
+		</p>
+
+		<p>
+			<b> 4. Partitioned graph </b>
+		</p>
+
+		...
+		</p>
+
+		<p>
+			<b> Links: </b>
+		</p>
+		<p> <a href="url">Source code</a> Each graph is stored under its appropriate branch (lab1, lab2, lab3, lab4)
+		</p>
+
+	</body>
+</html>
+
