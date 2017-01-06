@@ -12,19 +12,53 @@
 		</p>
 
 		<p>
+			<i> The following service description is adapted from the lab specification: 
+			</i>
+		</p>
+
+		<p>
 			<b> Service description </b>
 		</p>
 		
 		<p>
-		...
+		In this lab, we partition the graph to attain scalability.  We use a simple modulo function to determine which partition serves which node ids.  In our case, we support three partitions.  We use the function (node_id mod 3) + 1 = partition_number.  Thus, nodes 0, 3, 6 belong on partition 1; nodes 1, 4, 7 on partition 2; notes 2, 5, 8 on partition 3.  For requests involving two node ids, the request will be sent to the lower numbered partition.
 		</p>	
+
+		<p>
+		For any client request, the partition involved must be locked.  If multiple partitions are involved, the partitions must be locked in order of increasing partition number.  RPC is used for inter-node communication.  After a partition has mutated its graph, it may be unlocked.
+		</p>
+
+		<p>
+		Unlike the previous lab, shortest_path and remove_node to not need to be supported.
+		</p>
+
+		<p>
+		To start the server, the user should run the following:<br>
+		<i>
+		./cs426_graph_server &ltgraph_server_port&gt -p &ltpartnum&gt -l &ltpartlist&gt
+		</i>
+		</p>
+
+		<p>
+		The -p flag is used to specify which address in the &ltpartlist&gt belongs to the partition.  Each entry in the partition list is in the form IP:rpc_server_port.
+		</p>
 
 		<p>
 			<b> Compilation details </b>
 		</p>
 
 		<p>
+			Like the previous lab, in this lab we continue to run three instances on Google Cloud.  We continue to use Mongoose and Google RPC.
+		</p>
+
+		<p>
 			<b> Implementation details </b>
+		</p>
+
+		<p>
+		...locking implementation
+		...mutator or accessors that use RPC for communication
+		...
 		</p>
 
 		<p>
