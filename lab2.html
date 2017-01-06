@@ -67,6 +67,17 @@
 		</p>
 
 		<p>
+		To format the disk (increment the generation number), the user should run: <br>
+		<i> 
+		./cs426_graph_server -f &ltport&gt &ltdevfile&gt
+		</i>
+		</p>
+
+		<p>
+		The -r flag is also supported, and it randomizes the disk.  Of course, this effectively erases the log and the checkpoint, and the -r flag is only provided for testing purposes.
+		</p>
+
+		<p>
 			<b> Compilation Details </b>
 		</p>
 
@@ -141,6 +152,14 @@
 
 		<p>
 		The log is serialized as a stream of unsigned 64-bit integers.  First, we send the total number of nodes in the graph.  Then, we send each node, followed by the number of neighbors it has, followed by the ids for each of its neighbors.
+		</p>
+
+		<p>
+			<b> Test script </b>
+		</p>
+
+		<p>
+		The provided test script (mytest.sh) tests that reading and writing to the disk over multiple 4KB blocks works.  To test the durability of the graph, the user should manually restart server, then check if the graph has persisted by querying the graph with read requests.
 		</p>
 
 		<p>

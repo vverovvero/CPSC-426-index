@@ -12,12 +12,76 @@
 		</p>
 
 		<p>
+			<i> The following service description is adapted from the lab specification: 
+			</i>
+		</p>
+
+		<p>
 			<b> Service description </b>
 		</p>
 		
 		<p>
-		...
+		For graph replication, we use a hybrid scheme of chain replication and primary backup protocols.  Clients sent mutating requests to the primary replica, which forwards the request to the backup replica.  Requests are forward until the tail of the chain is reached.  Acknowledgements are sent starting from the tail, until they are cascaded back to the primary.  Write requests must always be sent to the head of the chain, but read requests can be sent to any node in the chain.
 		</p>	
+
+		<p>
+		Unlike the previous lab, durability is not a requirement.  We do not support logging or the checkpoint command in this lab.
+		</p>
+
+		<p>
+		Like the previous lab, Google Cloud is used for creating the VMs for our chain.  In order for the replicas to forward requests to one another, remote procedure calls are used. I have chosen to use Google RPC for handling inter-node communication.  Mongoose is still used as the http server.
+		</p>
+
+		<p>
+		The server should be started with the following command:
+		<i>
+		./cs426_graph_server -b ipaddress portnum
+		</i>
+		</p>
+
+		<p>
+		The -b flag specifies the next node in the chain.  The portnum specifies the port for the http server.  
+		</p>
+
+		<p>
+		For this lab, a chain of three VMs is used.
+		</p>
+
+		<p>
+			<b> Compilation Details </b>
+		</p>
+
+		<p>
+		The Makefile is for Linux.  Mongoose and Google RPC are used.  Mongoose requires no further installation, but Google RPC must be installed locally onto each VM in the chain.
+		</p>
+
+		<p>
+			<b> Implementation Details </b>
+		</p>
+
+		<p>
+		For this lab, we use threading to launch both an http server and an rpc server.  Any client http request that involves mutating the graph must be forwarded through a remote procedure call.  Thus, in cs426_graph_server.cpp, the event handling is updated for mutating events.  For such events, the primary replica sends an rpc request to the next node, waiting for the final acknowledgement before mutating the graph and sending an http response.
+		</p>
+
+		<p>
+		For inter-node communication, all related functions can be found in helloworld.proto, greeter_client.h, greeter_client.cpp, greeter_server.h, and greeter_server.cpp.  The contents of an rpc request and reply are defined in helloworld.proto.
+		</p>
+
+		<p>
+		Whenever an rpc server receives a forwarded request, the server runs the rpc client, which initiates another rpc request to the next node in the chain.  If the server receiving the request is the tail, then it does not run a new rpc client, and instead, it proceeds to mutate the node's local copy of the graph.  After the server either forwards the request or mutates the graph (if tail), the server sends back an acknowledgement to the client.  When the client receives the acknowledgement, the client modifies the graph (if not head or tail).
+		</p>
+
+		<p>
+			<b> Test script </b>
+		</p>
+
+		<p>
+		The test scripts provided assume particular IP addresses and port numbers.  Check the README that accompanies the source code to see what IP addresses and port numbers were used when testing the chain of three nodes.
+		</p>
+
+		<p>
+		Writing to the head of the chain is tested in mywritetest7080.sh.  Reading from all the nodes is tested in myreadtest7080.sh, myreadtest7090.sh, and myreadtest8000.sh.  All three of the read test scripts should return the same http responses, as the graph on each node in the chain should be replicated.
+		</p>
 
 		<p>
 			<b> Links: </b>
