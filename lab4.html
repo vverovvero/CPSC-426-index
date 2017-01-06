@@ -56,13 +56,31 @@
 		</p>
 
 		<p>
-		...locking implementation
-		...mutator or accessors that use RPC for communication
-		...
+		In this lab, locking and RPC communication for requests involving multiple node ids are introduced.  Locking is implemented through use of std::mutex.  Each partition has a mutex, which is acquired by the event handler before executing any graph mutation, and released by the event handler when the partition is no longer needed.
+		</p>
+
+		<p>
+		RPC is used for inter-node communication when the graph mutator functions add_edge and remove_edge are called.  First, the client sends the http requests to the lower numbered partition, as required by the specification, then the partition is locked.  Because the two node_ids may not both be stored on the lower numbered partition, the event handler initiates two rpc clients to query the partition for each node involved.  The RPC call returns information about the node's existence and if it's neighbors contain the other node id.  
+		</p>
+
+		<p>
+		After receiving this information, the partition forwards an rpc request to the higher numbered partition, sending the information about each node that was queried.  The rpc server on the higher partition will lock the partition, perform the requested graph mutation, and unlock the partition.  The higher numbered partition then sends back an acknowledgement to the lower numbered partition.
+		</p>
+
+		<p>
+		After receiving the acknowledgement, the lower numbered partition proceeds to perform the requested graph mutation.  Lastly, the lower numbered partition releases the lock.
+		</p>
+
+		<p>
+		Because node ids are now partitioned, we must alter the Graph class methods in graph.cpp in addition to having added rpc calls in the event handler.  Graph class methods can no longer query information about any arbitrary node_id because each partition holds only a subset of the entire graph.  Instead, any graph method that involves multiple node ids must also receive queryable information about the node ids as inputs to the method (this information is collected via rpc calls, as noted above).  Thus, the graph mutator functions add_edge and remove_edge are modified to account for this change in arguments.
 		</p>
 
 		<p>
 			<b> Test script </b>
+		</p>
+
+		<p>
+		The test script (mytest.sh) assumes that the graph is partitioned over three servers.  The addresses of these servers are specified in the test script, but it is assumed that the user has already started the servers.  The test script builds a simple graph and queries it, sending each of its requests to the appropriately numbered partition.  The user should see that http responses send back correct information about the graph, indicating that each partition sees the correct subset of the entire graph.
 		</p>
 
 		<p>
